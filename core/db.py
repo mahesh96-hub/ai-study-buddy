@@ -24,6 +24,7 @@ def init_db():
         """
         CREATE TABLE IF NOT EXISTS materials (
             material_id INTEGER PRIMARY KEY AUTOINCREMENT,
+            user_id TEXT,
             filename TEXT NOT NULL,
             upload_date TEXT NOT NULL
         );
@@ -55,19 +56,49 @@ def init_db():
         """
     )
 
+    migrate_database(connection)
+
     connection.commit()
     connection.close()
 
 
-def add_material(filename):
+def migrate_database(connection):
+    material_columns = connection.execute(
+        "PRAGMA table_info(materials)"
+    ).fetchall()
+
+    column_names = [
+        column[1]
+        for column in material_columns
+    ]
+
+    if "user_id" not in column_names:
+
+        connection.execute(
+            """
+            ALTER TABLE materials
+            ADD COLUMN user_id TEXT
+            """
+        )
+
+
+def add_material(filename, user_id):
     connection = get_connection()
 
     cursor = connection.execute(
         """
-        INSERT INTO materials (filename, upload_date)
-        VALUES (?, ?)
+        INSERT INTO materials (
+            user_id,
+            filename,
+            upload_date
+        )
+        VALUES (?, ?, ?)
         """,
-        (filename, datetime.now().isoformat())
+        (
+            user_id,
+            filename,
+            datetime.now().isoformat()
+        )
     )
 
     material_id = cursor.lastrowid
