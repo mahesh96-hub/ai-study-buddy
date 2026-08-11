@@ -1,5 +1,7 @@
 import sqlite3
+import json
 from pathlib import Path
+from datetime import datetime
 
 
 DATABASE_PATH = Path("data/study_buddy.db")
@@ -55,3 +57,98 @@ def init_db():
 
     connection.commit()
     connection.close()
+
+
+def add_material(filename):
+    connection = get_connection()
+
+    cursor = connection.execute(
+        """
+        INSERT INTO materials (filename, upload_date)
+        VALUES (?, ?)
+        """,
+        (filename, datetime.now().isoformat())
+    )
+
+    material_id = cursor.lastrowid
+
+    connection.commit()
+    connection.close()
+
+    return material_id
+
+
+def add_question(
+    material_id,
+    topic,
+    question_type,
+    question_text,
+    options,
+    correct_answer
+):
+    connection = get_connection()
+
+    cursor = connection.execute(
+        """
+        INSERT INTO questions (
+            material_id,
+            topic,
+            question_type,
+            question_text,
+            options_json,
+            correct_answer
+        )
+        VALUES (?, ?, ?, ?, ?, ?)
+        """,
+        (
+            material_id,
+            topic,
+            question_type,
+            question_text,
+            json.dumps(options) if options else None,
+            correct_answer
+        )
+    )
+
+    question_id = cursor.lastrowid
+
+    connection.commit()
+    connection.close()
+
+    return question_id
+
+
+def add_attempt(
+    question_id,
+    user_answer,
+    score,
+    feedback
+):
+    connection = get_connection()
+
+    cursor = connection.execute(
+        """
+        INSERT INTO attempts (
+            question_id,
+            user_answer,
+            score,
+            feedback,
+            answered_at
+        )
+        VALUES (?, ?, ?, ?, ?)
+        """,
+        (
+            question_id,
+            user_answer,
+            score,
+            feedback,
+            datetime.now().isoformat()
+        )
+    )
+
+    attempt_id = cursor.lastrowid
+
+    connection.commit()
+    connection.close()
+
+    return attempt_id

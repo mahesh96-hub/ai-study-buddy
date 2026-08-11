@@ -12,3 +12,9 @@ class Question(BaseModel):
 
 class QuestionList(BaseModel):
     questions: list[Question]
+
+
+class Evaluation(BaseModel):
+    status: Literal["Correct", "Partially Correct", "Wrong"]
+    score: float
+    feedback: str
