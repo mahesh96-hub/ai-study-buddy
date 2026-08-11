@@ -1,5 +1,6 @@
 import os
 
+import streamlit as st
 from dotenv import load_dotenv
 from google import genai
 
@@ -8,7 +9,10 @@ from core.schemas import QuestionList, Evaluation
 
 load_dotenv()
 
-GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+GEMINI_API_KEY = st.secrets.get("GEMINI_API_KEY") or os.getenv("GEMINI_API_KEY")
+
+if not GEMINI_API_KEY:
+    raise ValueError("Gemini API key is missing. Configure GEMINI_API_KEY in Streamlit Secrets.")
 
 client = genai.Client(api_key=GEMINI_API_KEY)
 
