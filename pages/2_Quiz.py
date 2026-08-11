@@ -1,10 +1,16 @@
 import json
-from datetime import datetime
 
 import streamlit as st
 
-from core.db import get_connection, add_attempt
+from core.db import (
+    get_connection,
+    add_attempt,
+    update_question_review
+)
+
 from core.ai_engine import evaluate_answer
+
+from core.scheduler import calculate_next_review
 
 
 st.title("📝 Quiz")
@@ -132,11 +138,13 @@ else:
                     if user_answer == correct_answer:
 
                         score = 1.0
+
                         feedback = "Correct answer."
 
                     else:
 
                         score = 0.0
+
                         feedback = (
                             f"Correct answer: {correct_answer}"
                         )
@@ -152,18 +160,32 @@ else:
                         )
 
                         score = evaluation.score
+
                         feedback = evaluation.feedback
 
                     else:
 
                         score = 0.0
+
                         feedback = "No answer provided."
+
+                next_review_date = calculate_next_review(
+                    score
+                )
+
                 add_attempt(
                     question_id=question_id,
                     user_answer=user_answer,
                     score=score,
                     feedback=feedback
                 )
+
+                update_question_review(
+                    question_id=question_id,
+                    score=score,
+                    next_review_date=next_review_date
+                )
+
                 total_score += score
 
                 results.append(
@@ -173,7 +195,8 @@ else:
                         "question_type": question_type,
                         "score": score,
                         "feedback": feedback,
-                        "correct_answer": correct_answer
+                        "correct_answer": correct_answer,
+                        "next_review_date": next_review_date
                     }
                 )
 
@@ -232,3 +255,8 @@ else:
                     f"Correct answer: "
                     f"**{result['correct_answer']}**"
                 )
+
+            st.write(
+                f"📅 Next review: "
+                f"**{result['next_review_date']}**"
+            )

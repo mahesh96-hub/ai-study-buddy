@@ -152,3 +152,32 @@ def add_attempt(
     connection.close()
 
     return attempt_id
+
+
+def update_question_review(
+    question_id,
+    score,
+    next_review_date
+):
+    connection = get_connection()
+
+    connection.execute(
+        """
+        UPDATE questions
+        SET
+            last_attempt = ?,
+            last_score = ?,
+            attempt_count = attempt_count + 1,
+            next_review_date = ?
+        WHERE question_id = ?
+        """,
+        (
+            datetime.now().isoformat(),
+            score,
+            next_review_date,
+            question_id
+        )
+    )
+
+    connection.commit()
+    connection.close()
