@@ -1,8 +1,12 @@
-from datetime import date, timedelta
+from datetime import datetime, timedelta
+from zoneinfo import ZoneInfo
+
+
+INDIA_TIMEZONE = ZoneInfo("Asia/Kolkata")
 
 
 def calculate_next_review(score: float) -> str:
-    today = date.today()
+    today = datetime.now(INDIA_TIMEZONE).date()
 
     if score >= 1.0:
         review_date = today + timedelta(days=3)
